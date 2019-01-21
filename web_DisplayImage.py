@@ -4,14 +4,12 @@ import os
 from flask import url_for
 import web_Pyrebase
 
-plotResultsDir = "./plotResults"
-inputDetectionResultsDir = "./inputDetectionResults"
 
 class DisplayImage:
     def __init__(self):
         self.storeIndex = {
             "img_Static": 0,
-            "img_PlotResult": 0,
+            "img_PlotResults": 0,
             "img_DetectedPerson": 0
         }
         self.pyrebase = web_Pyrebase.Pyrebase()
@@ -21,7 +19,7 @@ class DisplayImage:
         cv2.imwrite(fileDir, input)
         self.storeIndex[folder] += 1
         url, index = self.pyrebase.storeFile(fileDir, folder)
-        return url, index
+        return url
     def clear(self, folder):
         if self.storeIndex[folder] == 0: 
             return "done clearing " + folder

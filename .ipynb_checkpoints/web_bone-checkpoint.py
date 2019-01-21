@@ -7,17 +7,20 @@ import web_ImageListEmbedder
 import web_Clustering
 import web_DisplayImage
 import web_Pyrebase
+import web_VideoManager
 from flask import send_file
 import cv2
 
-humanDetection = web_HumanDetection.HumanDetection()
+# humanDetection = web_HumanDetection.HumanDetection()
 # imageListEmbedder = web_ImageListEmbedder.ImageListEmbedder()
 # clustering = web_Clustering.Clustering()
 displayImage = web_DisplayImage.DisplayImage()
+videoManager = web_VideoManager.VideoManager()
 
-static = "img_Static"
-detectedPerson = "img_DetectedPerson"
-plotResults = "img_PlotResults"
+
+img_static = "img_Static"
+img_detectedPerson = "img_DetectedPerson"
+img_plotResults = "img_PlotResults"
 
 app = Flask(__name__)
 CORS(app)
@@ -26,19 +29,21 @@ CORS(app)
 def initialize():
     return "loaded"
 
-@app.route('/detect',methods=['POST'])
+@app.route('/detect',methods=['GET','POST'])
 def detect():
-    video = request.form['video']
-    frameStep = request.form['frameStep']
-    maxFrames = request.form['maxFrames']
+    video = request.args.get('video')
+    frameStep = request.args.get('frameStep')
+    maxFrames = request.args.get('maxFrames')
+    humanDetection = web_HumanDetection.HumanDetection()
     print("detecting...")
     humanDetection.detect(video = video, frameStep = int(frameStep), maxFrames = int(maxFrames))
+    del humanDetection
     print("done")
     return 'ok'
 
-@app.route('/embed', methods=['POST'])
+@app.route('/embed', methods=['GET','POST'])
 def embed():
-    video = request.form['video']
+    video = request.args.get('video')
     imageListEmbedder.embed(video = video)
     return "done embedding"
 
@@ -57,11 +62,20 @@ def cluster():
     clustering.dbscan(eps=0.5, min_samples=7)
     return "done clustering"
 
-@app.route('/plot')
+@app.route('/plot', methods=['GET','POST'])
 def plot():
-    clustering.plotClustering()
-    plotResult = clustering.getPlotResult()
-    return send_file(plotResult, mimetype='image/png')
+    video = request.args.get('video')
+    plotResult = videoManager.getPlotResult(video)
+    if plotResult == "fail":
+        return "fail"
+    else:
+        return jsonify(url=displayImage.createImage(plotResult, "img_PlotResults"))
+
+# @app.route('/plot')
+# def plot():
+#     clustering.plotClustering()
+#     plotResult = clustering.getPlotResult()
+#     return send_file(plotResult, mimetype='image/png')
 
 @app.route("/display", methods=['POST'])
 def display():
@@ -75,7 +89,7 @@ def detectInImage():
     images = humanDetection.detectAllInImage(img)
     urls = []
     for image in images:
-        url,index = displayImage.createImage(image, detectedPerson)
+        url = displayImage.createImage(image, img_detectedPerson)
         urls.append(url)
     return jsonify(urls=urls)
     
@@ -91,8 +105,17 @@ def clearAll():
     return result
 
 @app.route("/checkVideoStatus")
+def checkVideoStatus():
+    video = request.args.get('video')
+    result = videoManager.getVideoStatus(video)
+    return jsonify(result = result)
+@app.route("/checkVideosStatus")
 def checkVideosStatus():
-    
+    results = videoManager.getVideosStatus()
+    if results == "fail":
+        return results
+    else:
+        return jsonify(results = results)
     
 if __name__ == "__main__":
     app.secret_key = os.urandom(24)

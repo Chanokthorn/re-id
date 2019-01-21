@@ -30,7 +30,7 @@ class ImageListEmbedder:
         self.videoDir = videoDir
         self.model = Model()
         return
-    def embed(self, video="TownCentreXVID.avi", threshold = 1):
+    def embed(self, video="TownCentreXVID.avi"):
         self.images = pickle.load( open( self.videoDir+video[:-4]+".p", "rb" ) )
         embeddings = []
         

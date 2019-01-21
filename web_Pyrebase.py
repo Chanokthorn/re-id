@@ -17,7 +17,7 @@ class Pyrebase:
         
         self.storeIndex = {
             "img_Static": 0,
-            "img_PlotResult": 0,
+            "img_PlotResults": 0,
             "img_DetectedPerson": 0
         }
     def storeFile(self, fileDir, folder):
