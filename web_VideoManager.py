@@ -12,6 +12,13 @@ class VideoManager:
         for video in self.videos:
             self.clusterings[video] = web_Clustering.Clustering()
             self.clusterings[video].loadClustered(video)
+            
+    def cluster(self, video, eps, min_samples, projectionDim):
+        self.clusterings[video].projectEmbeddings(int(projectionDim))
+        self.clusterings[video].dbscan(eps=float(eps), min_samples=int(min_samples))
+        self.clusterings[video].saveClustering()
+        self.clusterings[video].plotClustering()
+        return "success"
     def getVideoStatus(self, video):
         isSuccess = False
         try:
@@ -28,6 +35,7 @@ class VideoManager:
         try:
             results = []
             for video in self.videos:
+#                 self.clusterings[video].loadClustered(video)
                 results.append(self.clusterings[video].getClusteringInfo())
             isSuccess = True
         except:

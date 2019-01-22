@@ -43,6 +43,8 @@ class HumanDetection:
                 continue
             frameStepCounter = frameStep
             frameCounter += 1
+            if frame is None:
+                break
             img = cv2.resize(frame, (1280, 720))
             boxes, scores, classes, num = self.odapi.processFrame(img)
             for i in range(len(boxes)):
@@ -51,8 +53,11 @@ class HumanDetection:
                     box = boxes[i]
                     images.append(img[box[0]:box[2], box[1]:box[3]])
         print("done loading: ", str(frameCounter), "frames")
+        filePath = self.videoDir+video[:-4]+".p"
         cap.release()
-        pickle.dump(images, open( self.videoDir+video[:-4]+".p", "wb" ))
+        if os.path.exists(filePath):
+            os.remove(filePath)
+        pickle.dump(images, open( filePath, "wb" ))
         return
     def detectAllInImage(self, image):
         images = []

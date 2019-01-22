@@ -12,7 +12,7 @@ from flask import send_file
 import cv2
 
 # humanDetection = web_HumanDetection.HumanDetection()
-# imageListEmbedder = web_ImageListEmbedder.ImageListEmbedder()
+imageListEmbedder = web_ImageListEmbedder.ImageListEmbedder()
 # clustering = web_Clustering.Clustering()
 displayImage = web_DisplayImage.DisplayImage()
 videoManager = web_VideoManager.VideoManager()
@@ -37,29 +37,58 @@ def detect():
     humanDetection = web_HumanDetection.HumanDetection()
     print("detecting...")
     humanDetection.detect(video = video, frameStep = int(frameStep), maxFrames = int(maxFrames))
+
+#     try:
+#         humanDetection.detect(video = video, frameStep = int(frameStep), maxFrames = int(maxFrames))
+#     except:
+#         pass
     del humanDetection
     print("done")
     return 'ok'
+
+
 
 @app.route('/embed', methods=['GET','POST'])
 def embed():
     video = request.args.get('video')
     imageListEmbedder.embed(video = video)
+#     imageListEmbedder = web_ImageListEmbedder.ImageListEmbedder()
+#     try:
+#         video = request.args.get('video')
+#         imageListEmbedder.embed(video = video)
+#     except:
+#         pass
+#     del imageListEmbedder
     return "done embedding"
 
 @app.route('/projectEmbedding', methods=['POST'])
 def projectEmbedding():
     video = request.form['video']
-    dim = request.form['dim']
+    projectionDim = request.form['projectionDim']
     clustering.loadEmbeddings(video)
-    clustering.projectEmbeddings(int(dim))
+    clustering.projectEmbeddings(int(projectionDim))
     return "done projecting embeddings"
 
-@app.route('/cluster', methods=['POST'])
+@app.route('/cluster', methods=['GET','POST'])
 def cluster():
-    eps = request.form['eps']
-    min_samples = request.form['min_samples']
-    clustering.dbscan(eps=0.5, min_samples=7)
+    video = request.args.get('video')
+    eps = request.args.get('eps')
+    min_samples = request.args.get('min_samples')
+    projectionDim = request.args.get('projectionDim')
+    clustering = web_Clustering.Clustering()
+    print("start")
+    print("process")
+    videoManager.cluster(video, float(eps), int(min_samples), int(projectionDim))
+    del clustering
+#     try:
+#         print("process")
+#         clustering.loadEmbeddings(video)
+#         clustering.projectEmbeddings(int(dim))
+#         clustering.dbscan(eps=0.5, min_samples=7)
+#         print("done")
+#     except:
+#         print("fail")
+#         pass
     return "done clustering"
 
 @app.route('/plot', methods=['GET','POST'])
