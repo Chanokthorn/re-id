@@ -8,6 +8,7 @@ import web_Clustering
 import web_DisplayImage
 import web_Pyrebase
 import web_VideoManager
+import web_VideoHandler
 from flask import send_file
 import cv2
 
@@ -16,11 +17,12 @@ imageListEmbedder = web_ImageListEmbedder.ImageListEmbedder()
 # clustering = web_Clustering.Clustering()
 displayImage = web_DisplayImage.DisplayImage()
 videoManager = web_VideoManager.VideoManager()
-
+videoHandler = web_VideoHandler.VideoHandler()
 
 img_static = "img_Static"
 img_detectedPerson = "img_DetectedPerson"
 img_plotResults = "img_PlotResults"
+img_Frames = "img_Frames"
 
 app = Flask(__name__)
 CORS(app)
@@ -146,6 +148,33 @@ def checkVideosStatus():
     else:
         return jsonify(results = results)
     
+@app.route('/loadVideo', methods=['GET','POST'])
+def loadVideo():
+    video = request.args.get('video')
+    result = videoHandler.loadVideo(video)
+    return jsonify(result = result)
+
+@app.route('/setFrameStep', methods=['GET','POST'])
+def setFrameStep():
+    frameStep = request.args.get('frameStep')
+    result = videoHandler.setFrameStep(int(frameStep))
+    return jsonify(result = result)
+
+@app.route('/getFrame', methods=['GET','POST'])
+def getFrame():
+    image = videoHandler.getFrame()
+    return jsonify(url=displayImage.createImage(image, img_Frames))
+
+@app.route('/getNextFrame', methods=['GET','POST'])
+def getNextFrame():
+    image = videoHandler.getNextFrame()
+    return jsonify(url=displayImage.createImage(image, img_Frames))
+
+@app.route('/getPrevFrame', methods=['GET','POST'])
+def getPrevFrame():
+    image = videoHandler.getPrevFrame()
+    return jsonify(url=displayImage.createImage(image, img_Frames))
+
 if __name__ == "__main__":
     app.secret_key = os.urandom(24)
     app.run(host="0.0.0.0", debug=True)

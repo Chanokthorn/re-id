@@ -88,29 +88,29 @@ class Model:
 # In[5]:
 
 
-path = '../Market-1501-v15.09.15/bounding_box_train'
-cap = 10
-split = 0.80
-seed = 1082
+# path = '../Market-1501-v15.09.15/bounding_box_train'
+# cap = 10
+# split = 0.80
+# seed = 1082
 
-mean = torch.Tensor(np.array([0.49137255, 0.48235294, 0.44666667], dtype=np.float32))
-std = torch.Tensor(np.array([0.24705882, 0.24352941, 0.26156863], dtype=np.float32))
+# mean = torch.Tensor(np.array([0.49137255, 0.48235294, 0.44666667], dtype=np.float32))
+# std = torch.Tensor(np.array([0.24705882, 0.24352941, 0.26156863], dtype=np.float32))
 
-transforms = torchvision.transforms.Compose([
-    torchvision.transforms.ToPILImage(),
-    torchvision.transforms.Resize((224, 224)),
-    torchvision.transforms.ToTensor(),
-    torchvision.transforms.Normalize(mean=mean, std=std),
-])
+# transforms = torchvision.transforms.Compose([
+#     torchvision.transforms.ToPILImage(),
+#     torchvision.transforms.Resize((224, 224)),
+#     torchvision.transforms.ToTensor(),
+#     torchvision.transforms.Normalize(mean=mean, std=std),
+# ])
 
-train_cap = int(cap*split)
-test_cap = max(cap - train_cap, 0)
-train_image = MarketDataset(
-    path=path,
-    split=split,
-    train=True,
-    seed=seed,
-    transforms=transforms,
-    cap=train_cap
-)
+# train_cap = int(cap*split)
+# test_cap = max(cap - train_cap, 0)
+# train_image = MarketDataset(
+#     path=path,
+#     split=split,
+#     train=True,
+#     seed=seed,
+#     transforms=transforms,
+#     cap=train_cap
+# )
 

@@ -81,8 +81,29 @@ class Clustering:
             return "success"
         else:
             return "fail"
-    
+        
+    def getRepresentatives(self):
+        embeddings = self.embeddings
+        labels = self.labels
+        embeddingDict = {}
+        representatives = {}
+        for i in range(labels.shape[0]):
+            if str(labels[i]) in embeddingDict:
+                embeddingDict[str(labels[i])].append(embeddings[i])
+            else:
+                embeddingDict[str(labels[i])] = [embeddings[i]]
+        for key in embeddingDict:
+            embeddingGroup = np.asarray(embeddingDict[key])
+            representatives[key] = np.average(embeddingGroup, axis=0)
+        self.representatives = representatives
+        return "success"
     def saveClustering(self):
+        self.getRepresentatives()
+        repPath = self.videoDir + "representative-" + self.video[:-4] + ".p"
+        if os.path.exists(repPath):
+            os.remove(repPath)
+        pickle.dump(self.representatives, open(repPath, "wb"))
+        
         result = {"projectedEmbeddings": self.projectedEmbeddings, "labels": self.labels,
                  "parameters": self.parameters}
         filePath = self.videoDir + "clustered-" + self.video[:-4] + ".p"
@@ -120,7 +141,7 @@ class Clustering:
         for label in labels:
             label += 1
             labelColor.append(colors[label-1])
-        print(labelColor)
+#         print(labelColor)
 
         fig = plt.figure(1, figsize=(10, 10))
         ax = Axes3D(fig, rect=[0, 0, .95, 1], elev=48, azim=134)

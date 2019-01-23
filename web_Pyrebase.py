@@ -18,7 +18,8 @@ class Pyrebase:
         self.storeIndex = {
             "img_Static": 0,
             "img_PlotResults": 0,
-            "img_DetectedPerson": 0
+            "img_DetectedPerson": 0,
+            "img_Frames": 0
         }
     def storeFile(self, fileDir, folder):
         ref =  self.storage.child(folder + '/' + str(self.storeIndex[folder]) + '.png')
