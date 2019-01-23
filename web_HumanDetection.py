@@ -27,8 +27,7 @@ import os
 class HumanDetection:
     def __init__(self):
         self.videoDir = "HumanDetection/videos/"
-        model_path = 'HumanDetection/faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb'
-        self.odapi = DetectorAPI(path_to_ckpt=model_path)
+        self.images = []
         return
     def detect(self, video="TownCentreXVID.avi", frameStep = 20, maxFrames = 300):
         threshold = 0.7
@@ -69,4 +68,20 @@ class HumanDetection:
             if classes[i] == 1 and scores[i] > threshold:
                 box = boxes[i]
                 images.append(img[box[0]:box[2], box[1]:box[3]])
+        self.images = images
         return images
+    def getImage(self, index):
+        return self.images[index]
+    def loadModel(self):
+        try:
+            model_path = 'HumanDetection/faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb'
+            self.odapi = DetectorAPI(path_to_ckpt=model_path)
+        except:
+            pass
+        return "success"
+    def releaseModel(self):
+        try:
+            del self.odapi
+        except:
+            pass
+        return "success"

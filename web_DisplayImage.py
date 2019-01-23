@@ -15,11 +15,13 @@ class DisplayImage:
         }
         self.pyrebase = web_Pyrebase.Pyrebase()
         return
-    def createImage(self, input, folder):
+    def createImage(self, input, folder, indexing=False, index=None):
         fileDir = folder + "/" + str(self.storeIndex[folder]) + ".png"
         cv2.imwrite(fileDir, input)
         self.storeIndex[folder] += 1
-        url, index = self.pyrebase.storeFile(fileDir, folder)
+        url, counter = self.pyrebase.storeFile(fileDir, folder)
+        if indexing:
+            return {"url": url, "index": index}
         return url
     def clear(self, folder):
         if self.storeIndex[folder] == 0: 

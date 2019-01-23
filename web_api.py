@@ -60,7 +60,7 @@ def initModel():
 
 class Model:
     def __init__(self):
-        self.model = initModel()
+#         self.model = initModel()
         mean = torch.Tensor(np.array([0.49137255, 0.48235294, 0.44666667], dtype=np.float32))
         std = torch.Tensor(np.array([0.24705882, 0.24352941, 0.26156863], dtype=np.float32))
 
@@ -83,6 +83,13 @@ class Model:
             result = self.model(transformed).cpu().numpy()
             del transformed
         return result
+    def releaseModel(self):
+        del self.model
+        torch.cuda.empty_cache()
+        return "success"
+    def loadModel(self):
+        self.model = initModel()
+        return "success"
 
 
 # In[5]:

@@ -2,15 +2,7 @@ import pyrebase
 
 class Pyrebase:
     def __init__(self):
-        config = {
-            "apiKey": "lol",
-            "authDomain": "lol",
-            "databaseURL": "lol",
-            "projectId": "lol",
-            "storageBucket": "lol",
-            "messagingSenderId": "lol",
-            "serviceAccount": "lol"
-        }
+        config = "lol"
         self.firebase = pyrebase.initialize_app(config)
         self.db = self.firebase.database()
         self.storage = self.firebase.storage()
@@ -18,7 +10,8 @@ class Pyrebase:
         self.storeIndex = {
             "img_Static": 0,
             "img_PlotResults": 0,
-            "img_DetectedPerson": 0
+            "img_DetectedPerson": 0,
+            "img_Frames": 0
         }
     def storeFile(self, fileDir, folder):
         ref =  self.storage.child(folder + '/' + str(self.storeIndex[folder]) + '.png')

@@ -28,7 +28,6 @@ import os
 class ImageListEmbedder:
     def __init__(self, videoDir="HumanDetection/videos/"):
         self.videoDir = videoDir
-        self.model = Model()
         return
     def embed(self, video="TownCentreXVID.avi"):
         self.images = pickle.load( open( self.videoDir+video[:-4]+".p", "rb" ) )
@@ -45,6 +44,25 @@ class ImageListEmbedder:
             os.remove(filePath)
         pickle.dump( embeddings, open(filePath, "wb"))
         return "done"
+    def embedImage(self, img):
+        embedding = self.model.forward(image)
+        print("before squeeze"  + embedding.shape)
+        embedding =  np.squeeze(embedding, axis=0)
+        print("after squeeze" + embedding.shape)
+        return embedding
+    def loadModel(self):
+        self.model = Model()
+#         try:
+#             self.model = Model()
+#         except:
+#             pass
+        return "success"
+    def releaseModel(self):
+        try:
+            del self.model
+        except:
+            pass
+        return "success"
 
 #         embeddingDict = {} # (identity, list of embeddings)
 #         personDict = {} # (identity, representative embedding)
