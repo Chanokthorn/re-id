@@ -12,6 +12,7 @@ class VideoHandler:
     def loadVideo(self, video):
         self.index = 0
         self.video = video
+        del self.frames
         self.frames = []
         cap = cv2.VideoCapture(self.videoDir + video)
         frameStepCounter = self.frameStep

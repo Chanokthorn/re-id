@@ -28,6 +28,7 @@ class HumanDetection:
     def __init__(self):
         self.videoDir = "HumanDetection/videos/"
         self.images = []
+        self.localFolder = "img_temp/"
         return
     def detect(self, video="TownCentreXVID.avi", frameStep = 20, maxFrames = 300):
         threshold = 0.7
@@ -70,8 +71,10 @@ class HumanDetection:
                 images.append(img[box[0]:box[2], box[1]:box[3]])
         self.images = images
         return images
-    def getImage(self, index):
-        return self.images[index]
+    def getImage(self, fileName):
+        file = self.localFolder + fileName
+        image = cv2.imread(file)
+        return image
     def loadModel(self):
         try:
             model_path = 'HumanDetection/faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb'

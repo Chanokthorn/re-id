@@ -2,7 +2,15 @@ import pyrebase
 
 class Pyrebase:
     def __init__(self):
-        config = "lol"
+        config = {
+            "apiKey": "AIzaSyDZ0WG50Iy6nnGLm_9IrzlCqc1UWtCV33w",
+            "authDomain": "fir-fornsc.firebaseapp.com",
+            "databaseURL": "https://fir-fornsc.firebaseio.com",
+            "projectId": "fir-fornsc",
+            "storageBucket": "fir-fornsc.appspot.com",
+            "messagingSenderId": "264883917961",
+            "serviceAccount": "fir-fornsc-firebase-adminsdk-37zav-104df77123.json"
+        }
         self.firebase = pyrebase.initialize_app(config)
         self.db = self.firebase.database()
         self.storage = self.firebase.storage()
