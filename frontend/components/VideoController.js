@@ -31,17 +31,34 @@ const GrandInput = styled(Input)`
 const VideoConsole = styled.div`
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 4fr 1fr;
+  grid-template-columns: 1fr 6fr;
+  grid-template-rows: 7fr 1fr 1fr;
   grid-template-areas:
-    "frame frame frame"
-    "prev detect next";
+    "frame frame"
+    "index slider"
+    "detect detect";
+`;
+
+const IndexField = styled(Input)`
+  margin-top: 10px;
+  grid-area: index;
+  height: 25px;
+  width: 60px;
 `;
 
 const Frame = styled.div`
   grid-area: frame;
   display: flex;
+  width: 480px;
+  height: 320px;
+  text-align: center;
   flex-direction: row;
+  justify-self: center;
+  align-self: center;
+`;
+
+const LoaderDiv = styled.div`
+  display: flex;
   justify-self: center;
   align-self: center;
 `;
@@ -71,10 +88,45 @@ const NextButton = styled.div`
     align-self: center;
 `;
 
+// const GrandInputRange = styled(InputRange)`
+//   grid-area: range;
+// `;
+
+const Slider = styled.input`
+  margin-top: 10px;
+  grid-area: slider
+  -webkit-appearance: none;
+  width: 100%;
+  height: 25px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: 0.2s;
+  transition: opacity 0.2s;
+  &:hover {
+    opacity: 1;
+  }
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #4c96af;
+    cursor: pointer;
+  }
+  &::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #4c96af;
+    cursor: pointer;
+  }
+`;
+
 class VideoController extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      index: 0,
       backend: props.backend,
       video: props.video,
       videoList: [],
@@ -82,7 +134,8 @@ class VideoController extends React.Component {
       videoLoaded: false,
       videoListLoaded: false,
       frameURL: null,
-      frameStep: 10
+      frameStep: 10,
+      length: null
     };
   }
   componentDidMount() {
@@ -131,6 +184,21 @@ class VideoController extends React.Component {
         this.setState({ isLoaded: true });
       });
   };
+  getFrameIndex = index => {
+    const { backend } = this.state;
+    this.setState({ isLoaded: false });
+    axios
+      .get(backend + "getFrameIndex", {
+        params: { index: index }
+      })
+      .then(res => {
+        this.setState({ frameURL: backend + "imageStorage/" + res.data.url });
+        console.log("res: ", res.data.url);
+      })
+      .then(() => {
+        this.setState({ isLoaded: true });
+      });
+  };
   nextFrame = () => {
     const { backend } = this.state;
     this.setState({ isLoaded: false });
@@ -162,11 +230,14 @@ class VideoController extends React.Component {
       .get(backend + "loadVideo", {
         params: { video: video }
       })
-      .then(() => {
-        this.setState({ videoLoading: false });
+      .then(res => {
+        this.setState({
+          length: parseInt(res.data.result) - 2,
+          videoLoading: false
+        });
       })
       .then(() => {
-        this.getFrame();
+        this.getFrameIndex(0);
       })
       .then(() => {
         this.setState({ videoLoaded: true });
@@ -174,6 +245,11 @@ class VideoController extends React.Component {
   };
   detect = () => {
     console.log("detect");
+  };
+
+  onIndexChange = e => {
+    this.setState({ index: e.target.value });
+    this.getFrameIndex(e.target.value);
   };
 
   renderConsole = () => {
@@ -184,7 +260,10 @@ class VideoController extends React.Component {
       videoLoaded,
       frameStep,
       video,
-      frameURL
+      frameURL,
+      index,
+      isLoaded,
+      length
     } = this.state;
     let options = [];
     if (videoList.length !== 0) {
@@ -208,16 +287,10 @@ class VideoController extends React.Component {
             />
           ) : null}
         </Menu>
-        <GrandInput
-          label="Frame Step"
-          onChange={e => this.setState({ frameStep: e.target.value })}
-          defaultValue={frameStep}
-        />
-        <GrandButton onClick={() => this.setFrameStep()}>
-          Set Frame Step
-        </GrandButton>
         {videoLoading ? (
-          <Loader active inline="centered" />
+          <LoaderDiv>
+            <Loader active inline="centered" />
+          </LoaderDiv>
         ) : (
           <GrandButton onClick={() => this.loadVideo(video)}>
             Load Video
@@ -227,43 +300,44 @@ class VideoController extends React.Component {
           <VideoConsole>
             <Frame>
               {/* <img src={frameURL} /> */}
-              <Image fluid src={frameURL} size="medium" />
+              {isLoaded ? (
+                <Image centered src={frameURL} size="medium" />
+              ) : (
+                <Loader active inline="centered" />
+              )}
             </Frame>
-            <PrevButton>
+            <IndexField value={index} onChange={e => this.onIndexChange(e)} />
+            <Slider
+              type="range"
+              min="1"
+              max={String(length)}
+              value={index}
+              onChange={e => this.onIndexChange(e)}
+            />
+            {/* <PrevButton>
               <Button onClick={() => this.prevFrame()}>
                 <Icon name="angle left" />
               </Button>
-            </PrevButton>
+            </PrevButton> */}
+            {/* <GrandInputRange>
+              maxValue={20}
+              minValue={0}
+              value={this.state.index}
+              onChange=
+              {value => {
+                this.setState({ index: value });
+              }}
+            </GrandInputRange> */}
             <DetectButton>
               <Button onClick={() => this.props.detectFrame()}>Detect</Button>
             </DetectButton>
-            <NextButton>
+            {/* <NextButton>
               <Button onClick={() => this.nextFrame()}>
                 <Icon name="angle right" />
               </Button>
-            </NextButton>
+            </NextButton> */}
           </VideoConsole>
-        ) : //   <Grid width={16} centered>
-        //     <Grid.Row>
-        //       <Image src={frameURL} size="medium" />
-        //     </Grid.Row>
-        //     <Grid.Row>
-        //       <Grid.Column width={6}>
-        //         <Button onClick={() => this.prevFrame()}>
-        //           <Icon name="angle left" />
-        //         </Button>
-        //       </Grid.Column>
-        //       <Grid.Column width={4}>
-        //         <Button onClick={() => this.props.detectFrame()}>Detect</Button>
-        //       </Grid.Column>
-        //       <Grid.Column width={6}>
-        //         <Button onClick={() => this.nextFrame()}>
-        //           <Icon name="angle right" />
-        //         </Button>
-        //       </Grid.Column>
-        //     </Grid.Row>
-        //   </Grid>
-        null}
+        ) : null}
       </HumanDetectionConsole>
     );
   };

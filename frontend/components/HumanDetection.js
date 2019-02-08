@@ -116,7 +116,7 @@ class HumanDetection extends React.Component {
                       onClick={() => this.searchPerson(person.url)}
                       key={"div-" + person.url}
                     >
-                      <Image size="large" src={url} key={"img-" + person.url} />
+                      <Image size="small" src={url} key={"img-" + person.url} />
                     </div>
                   </Grid.Column>
                 );
