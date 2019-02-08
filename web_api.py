@@ -60,7 +60,20 @@ def initModel():
 
 class Model:
     def __init__(self):
-#         self.model = initModel()
+        tag_device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = torch.device(tag_device)
+
+        default_batch_size = 12 if tag_device == "cuda" else 2
+        default_num_workers = 6 if tag_device == "cuda" else 1
+        is_use_sigmoid = False
+        feature_size = 2048
+        stn = STN(224, 224, 3, structure_localization=[(8, 7), (10, 5), (20, 3), (30, 3)], structure_regression=[128, 64, 32])
+        self.model = ft_net(stn=stn)
+        a = torch.load("./weights/best_train.pth")
+        self.model.load_state_dict(a['model'])
+        self.model.cuda()
+        self.model.eval()
+        
         mean = torch.Tensor(np.array([0.49137255, 0.48235294, 0.44666667], dtype=np.float32))
         std = torch.Tensor(np.array([0.24705882, 0.24352941, 0.26156863], dtype=np.float32))
 

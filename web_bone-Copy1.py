@@ -14,7 +14,9 @@ from flask import send_file
 import cv2
 
 humanDetection = web_HumanDetection.HumanDetection()
+humanDetection.loadModel()
 imageListEmbedder = web_ImageListEmbedder.ImageListEmbedder()
+# imageListEmbedder.loadModel()
 # clustering = web_Clustering.Clustering()
 displayImage = web_DisplayImage.DisplayImage()
 videoManager = web_VideoManager.VideoManager()
@@ -47,7 +49,7 @@ def detect():
     video = request.args.get('video')
     frameStep = request.args.get('frameStep')
     maxFrames = request.args.get('maxFrames')
-    humanDetection.loadModel()
+    
     print("detecting...")
     humanDetection.detect(video = video, frameStep = int(frameStep), maxFrames = int(maxFrames))
 
@@ -129,7 +131,7 @@ def display():
 @app.route(BASE_URI + "/detectInImage", methods=['POST'])
 def detectInImage():
     img = cv2.imread("humans.png")
-    humanDetection.loadModel()
+#     humanDetection.loadModel()
     images = humanDetection.detectAllInImage(img)
     humanDetection.releaseModel()
     urls = []
@@ -200,12 +202,16 @@ def getPrevFrame():
 #     return jsonify(url=displayImage.createImage(image, img_Frames))
     return jsonify(url=displayImage.createImageLocal(image))
 
+@app.route(BASE_URI + '/getFrameIndex', methods=['GET','POST'])
+def getFrameIndex():
+    index = request.args.get('index')
+    image = videoHandler.getFrameIndex(index)
+    return jsonify(url=displayImage.createImageLocal(image))
+
 @app.route(BASE_URI + "/detectFrame", methods=['GET','POST'])
 def detectFrame():
     img = videoHandler.getFrame()
-    humanDetection.loadModel()
     images = humanDetection.detectAllInImage(img)
-    humanDetection.releaseModel()
     results = []
     for index in range(len(images)):
         image = images[index]
@@ -217,7 +223,7 @@ def detectFrame():
 def findPerson():
     url = request.args.get('url')
     image = humanDetection.getImage(url)
-    imageListEmbedder.loadModel()
+#     imageListEmbedder.loadModel()
     embedding = imageListEmbedder.embedImage(image)
     imageListEmbedder.releaseModel()
     result = clusteringManager.find(embedding)

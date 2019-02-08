@@ -29,6 +29,7 @@ class HumanDetection:
         self.videoDir = "HumanDetection/videos/"
         self.images = []
         self.localFolder = "img_temp/"
+        self.loadModel()
         return
     def detect(self, video="TownCentreXVID.avi", frameStep = 20, maxFrames = 300):
         threshold = 0.7
@@ -45,7 +46,7 @@ class HumanDetection:
             frameCounter += 1
             if frame is None:
                 break
-            img = cv2.resize(frame, (1280, 720))
+            img = cv2.resize(frame, (300, 300))
             boxes, scores, classes, num = self.odapi.processFrame(img)
             for i in range(len(boxes)):
                 # Class 1 represents human
@@ -62,7 +63,7 @@ class HumanDetection:
     def detectAllInImage(self, image):
         images = []
         threshold = 0.7
-        img = cv2.resize(image, (1280, 720))
+        img = cv2.resize(image, (640, 640))
         boxes, scores, classes, num = self.odapi.processFrame(img)
         for i in range(len(boxes)):
             # Class 1 represents human
@@ -76,11 +77,15 @@ class HumanDetection:
         image = cv2.imread(file)
         return image
     def loadModel(self):
-        try:
-            model_path = 'HumanDetection/faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb'
-            self.odapi = DetectorAPI(path_to_ckpt=model_path)
-        except:
-            pass
+        model_path = './HumanDetection/faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb'
+#         try:
+#             model_path = 'ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03/frozen_inference_graph.pb'
+#             self.odapi = DetectorAPI(path_to_ckpt=model_path)
+#         except:
+#             pass
+#         model_path = '/home/bone/ssd_mobilenet_v1_0.75_depth_300x300_coco14_sync_2018_07_03/frozen_inference_graph.pb'
+#         model_path = '/home/bone/share/CV/Official_ReID/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03/frozen_inference_graph.pb'
+        self.odapi = DetectorAPI(path_to_ckpt=model_path)
         return "success"
     def releaseModel(self):
         try:

@@ -28,6 +28,7 @@ import os
 class ImageListEmbedder:
     def __init__(self, videoDir="HumanDetection/videos/"):
         self.videoDir = videoDir
+        self.loadModel()
         return
     def embed(self, video="TownCentreXVID.avi"):
         self.images = pickle.load( open( self.videoDir+video[:-4]+".p", "rb" ) )

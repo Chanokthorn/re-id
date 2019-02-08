@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import os
 from flask import url_for
-import web_Pyrebase
+# import web_Pyrebase
 import random
 import string
 
@@ -17,7 +17,9 @@ class DisplayImage:
             "img_Frames": 0,
             "img_temp": 0
         }
-        self.pyrebase = web_Pyrebase.Pyrebase()
+        self.localFileTrackerSize = 20
+        self.localFileTracker = []
+#         self.pyrebase = web_Pyrebase.Pyrebase()
         self.localFolder = "img_temp"
         return
     
@@ -56,17 +58,21 @@ class DisplayImage:
             os.remove(fileDir)
         cv2.imwrite(fileDir, input)
         self.storeIndex["img_temp"] += 1
+        self.localFileTracker.append(fileDir)
+        print("fileTrackerSize: " +  str(len(self.localFileTracker)))
         return fileName
     
     def createImageLocal(self, input):
-        if self.storeIndex["img_temp"] > 10:
-            self.clearLocal()
+        if len(self.localFileTracker) > self.localFileTrackerSize:
+            os.remove(self.localFileTracker[0])
+            del self.localFileTracker[0]
         fileName = self.createFileLocal(input)
         return fileName
     
     def createImageLocalWithIndex(self, input, index=None):
-        if self.storeIndex["img_temp"] > 10:
-            self.clearLocal()
+        if len(self.localFileTracker) > self.localFileTrackerSize:
+            os.remove(self.localFileTracker[0])
+            del self.localFileTracker[0]
         fileName = str( self.storeIndex["img_temp"]) + ".png"
         fileDir = self.localFolder + "/" + fileName
         cv2.imwrite(fileDir, input)

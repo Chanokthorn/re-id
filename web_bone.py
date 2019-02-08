@@ -17,8 +17,8 @@ pton = "/thananop/ssdfaces"
 
 humanDetection = web_HumanDetection.HumanDetection()
 imageListEmbedder = web_ImageListEmbedder.ImageListEmbedder()
-# clustering = web_Clustering.Clustering()
-displayImage = web_DisplayImage.DisplayImage()
+clustering = web_Clustering.Clustering()
+# displayImage = web_DisplayImage.DisplayImage()
 videoManager = web_VideoManager.VideoManager()
 videoHandler = web_VideoHandler.VideoHandler()
 clusteringManager = web_ClusteringManager.ClusteringManager()
