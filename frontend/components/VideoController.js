@@ -43,7 +43,7 @@ const IndexField = styled(Input)`
   margin-top: 10px;
   grid-area: index;
   height: 25px;
-  width: 60px;
+  width: 80px;
 `;
 
 const Frame = styled.div`

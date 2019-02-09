@@ -1,7 +1,14 @@
 import React from "react";
 import axios from "axios";
 import styled from "styled-components";
-import { Grid, Loader, Image, Input, Button } from "semantic-ui-react";
+import {
+  Grid,
+  Loader,
+  Image,
+  Input,
+  Button,
+  Container
+} from "semantic-ui-react";
 import VideoController from "../components/VideoController";
 
 const HumanDetectionContainer = styled.div`
@@ -32,6 +39,16 @@ const HumanDetectionResult = styled.div`
 const Result = styled.div`
   width: 60%;
   text-align: center;
+  // opacity: ${props => (props.selected ? "0.6" : "1")};
+  transition: background-color: white ease-in-out;
+  -moz-transition: background-color 0.2s ease-in-out;
+  -webkit-transition: background-color 0.2s ease-in-out;
+  &:hover {
+    background-color: gray;
+    transition: background-color 0.2s ease-in-out;
+    -moz-transition: background-color 0.2s ease-in-out;
+    -webkit-transition: background-color 0.2s ease-in-out;
+  }
 `;
 
 const GrandInput = styled(Input)`
@@ -42,6 +59,19 @@ const GrandButton = styled(Button)`
   margin: 0.5em 1em !important;
 `;
 
+const GrandImage = styled(Image)`
+  opacity: ${props => (props.selected ? "0.6" : "1")};
+  transition: opacity 0.2s ease-in-out;
+  -moz-transition: opacity 0.2s ease-in-out;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  &:hover {
+    opacity: 0.6;
+    transition: opacity 0.2s ease-in-out;
+    -moz-transition: opacity 0.2s ease-in-out;
+    -webkit-transition: opacity 0.2s ease-in-out;
+  }
+`;
+
 class HumanDetection extends React.Component {
   constructor(props) {
     super(props);
@@ -49,8 +79,12 @@ class HumanDetection extends React.Component {
       backend: props.backend,
       frameLoaded: false,
       personsLoading: false,
+      isFinding: false,
+      findResult: [],
       personList: [],
-      margin: 1
+      margin: 1,
+      personSelected: null,
+      videoSelected: null
     };
   }
 
@@ -73,8 +107,19 @@ class HumanDetection extends React.Component {
       });
   };
 
-  searchPerson = index => {
-    console.log("searching: " + index);
+  searchPerson = url => {
+    const { backend } = this.state;
+    this.setState({ isFinding: true, personSelected: url });
+    console.log("searching: " + url);
+    axios
+      .get(backend + "findPerson", {
+        params: { url: url }
+      })
+      .then(res => {
+        this.setState({ findResult: res.data.result, isFinding: false });
+        console.log("Found list");
+        console.log(res.data.result);
+      });
   };
 
   setMargin = () => {
@@ -88,42 +133,59 @@ class HumanDetection extends React.Component {
       frameLoaded,
       personsLoading,
       personList,
-      margin
+      margin,
+      findResult,
+      personSelected
     } = this.state;
     return (
       <HumanDetectionContainer>
         <VideoController backend={backend} detectFrame={this.detectFrame} />
-        <HumanDetectionPersons>
-          <h3>Detected Persons</h3>
-          {!frameLoaded ? (
-            <h3>No frame selected</h3>
-          ) : personsLoading ? (
-            <Loader active inline="centered" />
-          ) : (
-            <Grid
-              columns={4}
-              stackable
-              centered
-              padded="vertically"
-              textAlign="center"
-            >
-              {personList.map(person => {
-                const url = backend + "imageStorage/" + person;
-                console.log("image url: ", url);
-                return (
-                  <Grid.Column width={4} key={person.index}>
-                    <div
-                      onClick={() => this.searchPerson(person.url)}
-                      key={"div-" + person.url}
-                    >
-                      <Image size="small" src={url} key={"img-" + person.url} />
-                    </div>
-                  </Grid.Column>
-                );
-              })}
+        <Container>
+          <HumanDetectionPersons>
+            <Grid centered>
+              <h3>Detected Persons</h3>
+              {!frameLoaded ? (
+                <h3>No frame selected</h3>
+              ) : personsLoading ? (
+                <Loader active inline="centered" />
+              ) : (
+                // <GridContainerContainer>
+                //   <GridContainer>
+                <Grid.Row>
+                  <Grid
+                    columns={4}
+                    stackable
+                    centered
+                    padded="vertically"
+                    textAlign="center"
+                  >
+                    {personList.map(person => {
+                      const url = backend + "imageStorage/" + person;
+                      console.log("image url: ", url);
+                      return (
+                        <Grid.Column width={4} key={person.index}>
+                          <div
+                            onClick={() => this.searchPerson(person)}
+                            key={"div-" + person.url}
+                          >
+                            <GrandImage
+                              size="small"
+                              src={url}
+                              key={"img-" + person.url}
+                              selected={person === personSelected}
+                            />
+                          </div>
+                        </Grid.Column>
+                      );
+                    })}
+                  </Grid>
+                </Grid.Row>
+                //   </GridContainer>
+                // </GridContainerContainer>
+              )}
             </Grid>
-          )}
-        </HumanDetectionPersons>
+          </HumanDetectionPersons>
+        </Container>
         <HumanDetectionResult>
           <h3>Detection Results</h3>
           <GrandInput
@@ -132,8 +194,11 @@ class HumanDetection extends React.Component {
             defaultValue={margin}
           />
           <GrandButton onClick={() => this.setMargin()}>Set Margin</GrandButton>
-          <Result>- vid2.mp4</Result>
-          <Result>- vid5.mp4</Result>
+          {findResult.length === 0
+            ? null
+            : findResult.map(videoName => (
+                <GrandButton color="blue">{videoName}</GrandButton>
+              ))}
         </HumanDetectionResult>
       </HumanDetectionContainer>
     );
