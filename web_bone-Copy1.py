@@ -217,16 +217,27 @@ def detectFrame():
         results.append(result)
     return jsonify(results=results)
 
+@app.route(BASE_URI + "/setMargin", methods=['GET','POST'])
+def setMargin():
+    margin = request.args.get('margin')
+    result = clusteringManager.setMargin(margin)
+    return result
+    
+
 @app.route(BASE_URI + "/findPerson", methods=['GET','POST'])
 def findPerson():
     url = request.args.get('url')
+    mode = request.args.get('mode')
     image = humanDetection.getImage(url)
     embedding = imageListEmbedder.embedImage(image)
-    result = clusteringManager.findFull(embedding)
+    if mode == "useCluster":
+        result = clusteringManager.find(embedding)
+    else:
+        result = clusteringManager.findFull(embedding)
     return jsonify(result=result)
     
 @app.route(BASE_URI + "/observe", methods=['GET','POST'])
-def observe():
+def observe ():
     video = request.args.get('video')
     result = clusteringManager.observe(video)
     return jsonify(result=result)

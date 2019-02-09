@@ -47,7 +47,7 @@ class ClusteringManager:
         return "success"
     
     def setMargin(self, margin):
-        self.margin = margin
+        self.margin = float(margin)
         return "success"
     def calcDistance(self, em1, em2):
         subtraction = em1 - em2
