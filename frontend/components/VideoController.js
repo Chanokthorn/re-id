@@ -299,10 +299,10 @@ class VideoController extends React.Component {
         {videoLoaded ? (
           <VideoConsole>
             <Frame>
-              {/* <img src={frameURL} /> */}
               {isLoaded ? (
-                <Image centered src={frameURL} size="medium" />
+                <img src={frameURL} height="320" width="480" />
               ) : (
+                // <Image centered src={frameURL} size="medium" />
                 <Loader active inline="centered" />
               )}
             </Frame>
