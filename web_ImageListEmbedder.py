@@ -46,10 +46,10 @@ class ImageListEmbedder:
         pickle.dump( embeddings, open(filePath, "wb"))
         return "done"
     def embedImage(self, img):
-        embedding = self.model.forward(image)
-        print("before squeeze"  + embedding.shape)
+        embedding = self.model.forward(img)
+        print("before squeeze"  + str(embedding.shape))
         embedding =  np.squeeze(embedding, axis=0)
-        print("after squeeze" + embedding.shape)
+        print("after squeeze" + str(embedding.shape))
         return embedding
     def loadModel(self):
         self.model = Model()
