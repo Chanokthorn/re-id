@@ -6,7 +6,7 @@ import Slider from "./Slider";
 
 const TimelineStyle = styled.section`
 position: relative;
-margin: 0px 20px;
+margin: 0px 20px 0px 20px;
 width: calc(100vw - 2*20px);
 overflow: hidden;
 
@@ -24,7 +24,7 @@ section {
             height: 100%;
             border-left: 1px solid #000;
             top: 0px;
-            z-index: 3;
+            z-index: 20;
         }
 
         .video-item {
@@ -39,15 +39,20 @@ section {
                 text-align: center;
                 position: absolute;
                 left: 0px;
-                z-index: 5;
+                z-index: 25;
                 background: white;
+                transition: all 0.2s ease-in-out;
+
+                &.active {
+                    background: #DDD !important;
+                }
             }
             
             .video-timeline-wrapper {
                 background-color: #EEE;
                 position: relative;
                 box-sizing: border-box;
-                padding: 0px 10px;
+                padding: 0px 250px 0px 10px;
                 transition: all 0.2s ease-in-out;
                 height: 50px;
 
@@ -59,6 +64,9 @@ section {
                 }
                 &:active {
                     background-color: #999 !important;
+                }
+                &.no-hover {
+                    background-color: #EEE !important;
                 }
 
                 .video-timeline {
@@ -76,6 +84,7 @@ section {
                             border-radius: 3px;
                             border: 1px solid #0001;
                             position: absolute;
+                            /* z-index: 9; */
                             .bubble {
                                 display: none;
                             }
@@ -86,21 +95,15 @@ section {
                                     background: #FFF;
                                     padding: 5px;
                                     box-sizing: border-box;
-                                    transform: translateY(-30px);
+                                    transform: translate(-3px, -55px);
+                                    min-width: 220px;
+                                    max-width: 220px;
+                                    z-index: 21;
                                 }
                             }
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
 
                         }
                     }
-                }
-            }
-
-            &:nth-child(2) {
-                .video-timeline-wrapper:hover {
-                    height: 100px;
                 }
             }
 
@@ -116,9 +119,29 @@ section {
     }
 }
 
-.no-height {
+.no-hover {
     height: 0px !important;
     line-height: 0px !important;
+}
+
+.bottom {
+    display: flex;
+    margin-top: 20px;
+    box-sizing: border-box;
+    .left-side {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        > div.wrapper {
+            min-width: 300px;
+            max-width: 300px;
+        }
+    }
+    .right-side {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+    }
 }
 `;
 
@@ -197,16 +220,30 @@ class Timeline extends Component {
             x: x
         })
     }
+    onGetFrame = () => {
+        const { selectedIndex, x, scale } = this.state;
+        const secondWidth = scale;
+        const { files, offset } = this.props;
+
+        // Calculate exact frame
+        const frame = parseInt(Math.round(((x - 10) / secondWidth - (get(files, `[${selectedIndex}].offset`) - offset) / 1000) * get(files, `[${selectedIndex}].fps`, 0)));
+
+        if (!(frame < 0 || frame >= get(files, `[${selectedIndex}].maxIndex`, 0))) {
+            // In range
+            // TODO connect with axios to get image url 
+            console.log(`${get(files, `[${selectedIndex}].filename`)} at ${frame} frame`)
+        }
+    }
     componentDidMount() {
         document.getElementsByTagName("body")[0].onkeydown = (e) => {
             if (e.key === "ArrowRight") {
                 this.setState({
-                    x: Math.min(this.state.x + 1, this._Timeline.children[0].children[0].offsetWidth - 10)
-                })
+                    x: Math.min(this.state.x + 1, this._Timeline.children[0].children[0].offsetWidth - 250)
+                }, this.onGetFrame)
             } else if(e.key === "ArrowLeft") {
                 this.setState({
                     x: Math.max(this.state.x - 1, 10)
-                })
+                }, this.onGetFrame)
             }
         }
     }
@@ -232,8 +269,8 @@ class Timeline extends Component {
         if (this._Timeline) {
             const x = getRelativeCoordinates(e, this._Timeline).x - 150;
             this.setState({
-                x: (x < 10) ? 10 : Math.min(x, this._Timeline.children[0].children[0].offsetWidth - 10) //Pixel
-            })
+                x: (x < 10) ? 10 : Math.min(x, this._Timeline.children[0].children[0].offsetWidth - 250) //Pixel
+            }, this.onGetFrame)
         }
     }
     render() {
@@ -246,16 +283,18 @@ class Timeline extends Component {
                     ref={(me) => (this._Timeline = me)}
                 >
                     <table>
-                        <tr className="video-item no-height">
-                            <th className="video-name no-height"></th>
+                        <tr className="video-item">
+                            <th className="video-name">
+                                <b>Filename</b>
+                            </th>
                             <td
-                                className={`video-timeline-wrapper no-height`}
+                                className={`video-timeline-wrapper no-hover`}
                             >
                                 <div
                                     className="hard-bar"
                                     style={{
                                         left: `${x}px`,
-                                        height: `calc(${files.length} * 50px)`
+                                        height: `calc(${files.length + 1} * 50px)`
                                     }}
                                 />
                             </td>
@@ -268,7 +307,7 @@ class Timeline extends Component {
                                         className="video-item"
                                         key={idx}
                                     >
-                                        <th className="video-name">
+                                        <th className={`video-name ${selectedIndex === idx ? "active" : ""}`}>
                                             {get(it, "filename")}
                                         </th>
                                         <td
@@ -297,7 +336,8 @@ class Timeline extends Component {
                                                                 }}
                                                             >
                                                                 <div className="bubble">
-                                                                    Hello
+                                                                    <b>Time</b> {get(it, "offset")/1000 + r[0]/get(it, "fps")}<br />
+                                                                    <b>Frame</b> {r[0]} to {r[1]}<br />
                                                                 </div>
                                                             </div>
                                                         ))
@@ -311,22 +351,29 @@ class Timeline extends Component {
                         }
                     </table>
                 </section>
-                <div>
-                    <b>Relative Time</b> {`${RoundDecimal((secondWidth === 0) ? 0 : (x - 10)/secondWidth)} seconds`}
-                </div>
-                <div className="">
-                    <span>
-                        <b>
-                            Pixels per second
-                        </b>
-                    </span>
-                    <Slider
-                        min={0}
-                        max={60}
-                        step={0.25}
-                        updateRange={this.onUpdateScale}
-                        range={scale}
-                    />
+                <div className="bottom">
+                    <div className="left-side">
+                        <div className="wrapper">
+                            <span>
+                                <b>Relative Time</b> {`${RoundDecimal((secondWidth === 0) ? 0 : (x - 10) / secondWidth)} seconds`}<br />
+                            </span>
+                            <span>
+                                <b>
+                                    Pixels per second
+                                </b>
+                            </span>
+                            <Slider
+                                min={0}
+                                max={60}
+                                step={0.1}
+                                updateRange={this.onUpdateScale}
+                                range={scale}
+                            />
+                        </div>
+                    </div>
+                    <div className="right-side">
+                        <img src="http://lorempixel.com/200/450" />
+                    </div>
                 </div>
             </TimelineStyle>
         )
@@ -344,11 +391,13 @@ const MockIndex = (ranges) => {
     return foundIndexes;
 }
 
+const testOffset = Date.now()
+
 Timeline.defaultProps = {
-    offset: 0,
+    offset: testOffset,
     files: [{
         filename: "Video 1.mp4",
-        offset: 0,
+        offset: testOffset,
         fps: 23.96,
         maxIndex: 1600,
         containIndex: MockIndex([
@@ -359,7 +408,7 @@ Timeline.defaultProps = {
         ])
     }, {
         filename: "Video 2.mp4",
-        offset: 1000*20,
+        offset: testOffset + 1000*20,
         fps: 23.96,
         maxIndex: 500,
         containIndex: MockIndex([
@@ -368,7 +417,7 @@ Timeline.defaultProps = {
         ])
         }, {
             filename: "Video 3.mp4",
-            offset: 1000*60,
+            offset: testOffset + 1000*60,
             fps: 23.96,
             maxIndex: 1600,
             containIndex: MockIndex([
@@ -379,7 +428,7 @@ Timeline.defaultProps = {
             ])
         }, {
             filename: "Video 4.mp4",
-            offset: 1000*75,
+            offset: testOffset + 1000*75,
             fps: 23.96,
             maxIndex: 1500,
             containIndex: MockIndex([
@@ -388,7 +437,7 @@ Timeline.defaultProps = {
             ])
         }, {
             filename: "Video 5.mp4",
-            offset: 1000*80,
+            offset: testOffset + 1000*80,
             fps: 23.96,
             maxIndex: 1000,
             containIndex: MockIndex([
@@ -398,7 +447,7 @@ Timeline.defaultProps = {
             ])
         }, {
             filename: "Video 6.mp4",
-            offset: 1000 * 135,
+            offset: testOffset + 1000 * 135,
             fps: 23.96,
             maxIndex: 500,
             containIndex: MockIndex([
