@@ -57,7 +57,6 @@ def detect():
 #         humanDetection.detect(video = video, frameStep = int(frameStep), maxFrames = int(maxFrames))
 #     except:
 #         pass
-    humanDetection.releaseModel()
     print("done")
     return 'ok'
 
@@ -133,7 +132,6 @@ def detectInImage():
     img = cv2.imread("humans.png")
 #     humanDetection.loadModel()
     images = humanDetection.detectAllInImage(img)
-    humanDetection.releaseModel()
     urls = []
     for image in images:
         url = displayImage.createImageLocal(image, img_detectedPerson)
@@ -219,14 +217,29 @@ def detectFrame():
         results.append(result)
     return jsonify(results=results)
 
+@app.route(BASE_URI + "/setMargin", methods=['GET','POST'])
+def setMargin():
+    margin = request.args.get('margin')
+    result = clusteringManager.setMargin(margin)
+    return result
+    
+
 @app.route(BASE_URI + "/findPerson", methods=['GET','POST'])
 def findPerson():
     url = request.args.get('url')
+    mode = request.args.get('mode')
     image = humanDetection.getImage(url)
-#     imageListEmbedder.loadModel()
     embedding = imageListEmbedder.embedImage(image)
-    imageListEmbedder.releaseModel()
-    result = clusteringManager.find(embedding)
+    if mode == "useCluster":
+        result = clusteringManager.find(embedding)
+    else:
+        result = clusteringManager.findFull(embedding)
+    return jsonify(result=result)
+    
+@app.route(BASE_URI + "/observe", methods=['GET','POST'])
+def observe ():
+    video = request.args.get('video')
+    result = clusteringManager.observe(video)
     return jsonify(result=result)
     
 
