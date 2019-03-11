@@ -12,6 +12,7 @@ import {
   Segment
 } from "semantic-ui-react";
 import VideoController from "../components/VideoController";
+import Timeline from "../components/Timeline2";
 
 const HumanDetectionContainer = styled.div`
     width: 100%;
@@ -175,8 +176,8 @@ class HumanDetection extends React.Component {
       videoPersonList,
       useCluster
     } = this.state;
-    return (
-      <HumanDetectionContainer>
+    return [
+      <HumanDetectionContainer key="main">
         <VideoController backend={backend} detectFrame={this.detectFrame} />
         <Container>
           <HumanDetectionPersons>
@@ -276,8 +277,11 @@ class HumanDetection extends React.Component {
               ))
             : null}
         </Grid>
-      </HumanDetectionContainer>
-    );
+      </HumanDetectionContainer>,
+      <Timeline
+          key="timeline"
+      />
+    ];
   }
 }
 

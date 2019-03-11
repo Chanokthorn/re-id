@@ -126,7 +126,7 @@ section {
 
 .bottom {
     display: flex;
-    margin-top: 20px;
+    margin: 20px 0px 50px 0px;
     box-sizing: border-box;
     .left-side {
         flex: 1;
@@ -203,7 +203,8 @@ class Timeline extends Component {
         this.state = {
             selectedIndex: -1,
             x: 10,
-            scale: 10
+            scale: 10,
+            frameState: "Invalid"
         }
     }
     onChangeIndex = (idx) => {
@@ -231,8 +232,15 @@ class Timeline extends Component {
         if (!(frame < 0 || frame >= get(files, `[${selectedIndex}].maxIndex`, 0))) {
             // In range
             // TODO connect with axios to get image url 
-            console.log(`${get(files, `[${selectedIndex}].filename`)} at ${frame} frame`)
+            this.setState({
+                frameState: `"${get(files, `[${selectedIndex}].filename`)}" at frame ${frame}`
+            })
+        } else {
+            this.setState({
+                frameState: "Invalid"
+            })
         }
+        
     }
     componentDidMount() {
         document.getElementsByTagName("body")[0].onkeydown = (e) => {
@@ -274,7 +282,7 @@ class Timeline extends Component {
         }
     }
     render() {
-        const { selectedIndex, x, scale } = this.state;
+        const { selectedIndex, x, scale, frameState } = this.state;
         const { files } = this.props;
         const secondWidth = scale;
         return (
@@ -369,6 +377,11 @@ class Timeline extends Component {
                                 updateRange={this.onUpdateScale}
                                 range={scale}
                             />
+                            <span>
+                                {
+                                    frameState
+                                }
+                            </span>
                         </div>
                     </div>
                     <div className="right-side">
