@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "next"
+    "dev": "next",
+    "dev_4": "PORT=4000 next -p 4000"
   },
   "keywords": [],
   "author": "",
