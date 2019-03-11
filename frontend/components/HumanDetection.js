@@ -246,12 +246,12 @@ class HumanDetection extends React.Component {
               </GrandButton>
               {findResult.length === 0
                 ? null
-                : findResult.map(videoName => (
+                : findResult.map(video => (
                     <GrandButton
                       color="blue"
-                      onClick={() => this.observe(videoName)}
+                      onClick={() => this.observe(video.videoName)}
                     >
-                      {videoName}
+                      {video.videoName}
                     </GrandButton>
                   ))}
             </HumanDetectionResult>
