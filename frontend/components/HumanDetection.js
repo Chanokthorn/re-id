@@ -85,6 +85,7 @@ class HumanDetection extends React.Component {
       isFinding: false,
       findResult: [],
       personList: [],
+      findResultMatch: [],
       margin: 1,
       personSelected: null,
       videoSelected: null,
@@ -115,7 +116,7 @@ class HumanDetection extends React.Component {
 
   searchPerson = url => {
     const { backend, useCluster } = this.state;
-    this.setState({ isFinding: true, personSelected: url });
+    this.setState({ isFinding: true, personSelected: url }, this.searchPersonWithFrame);
     console.log("searching: " + url);
     axios
       .get(backend + "findPerson", {
@@ -162,6 +163,21 @@ class HumanDetection extends React.Component {
     }
     this.setState({ useCluster: checked });
   };
+  searchPersonWithFrame = () => {
+    const { backend, personSelected, useCluster } = this.state;
+    axios
+      .get(backend + "findPersonWithFrame", {
+        params: {
+          url: personSelected,
+          mode: useCluster ? "useCluster" : "full"
+        }
+      })
+      .then(res => {
+        this.setState({ findResultMatch: res.data.result, isFinding: false });
+        console.log("Found Match list");
+        console.log(res.data.result);
+      });
+  };
 
   render() {
     const {
@@ -171,6 +187,7 @@ class HumanDetection extends React.Component {
       personList,
       margin,
       findResult,
+      findResultMatch,
       personSelected,
       isFindingInVideo,
       videoPersonList,
@@ -280,6 +297,7 @@ class HumanDetection extends React.Component {
       </HumanDetectionContainer>,
       <Timeline
           key="timeline"
+          foundList={findResultMatch}
       />
     ];
   }

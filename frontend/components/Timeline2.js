@@ -1,8 +1,10 @@
 import React, { Component } from "react";
 import styled from "styled-components";
 import PropTypes from 'prop-types';
-import { get } from "lodash";
+import { get, defaultTo } from "lodash";
 import Slider from "./Slider";
+import axios from "axios";
+import config from "../config.json";
 
 const TimelineStyle = styled.section`
 position: relative;
@@ -179,6 +181,7 @@ const RoundDecimal = (value, decimal=3) => {
 }
 
 const IndexesToRange = (indexes) => {
+    if (indexes.length <= 0) return []
     if (indexes.length === 1) {
         return [[indexes[0], indexes[0]]];
     }
@@ -204,7 +207,9 @@ class Timeline extends Component {
             selectedIndex: -1,
             x: 10,
             scale: 10,
-            frameState: "Invalid"
+            frameState: "Invalid",
+            frameIndex: -1,
+            imageUri: ""
         }
     }
     onChangeIndex = (idx) => {
@@ -221,7 +226,8 @@ class Timeline extends Component {
             x: x
         })
     }
-    onGetFrame = () => {
+
+    onGetFrame = async () => {
         const { selectedIndex, x, scale } = this.state;
         const secondWidth = scale;
         const { files, offset } = this.props;
@@ -232,9 +238,18 @@ class Timeline extends Component {
         if (!(frame < 0 || frame >= get(files, `[${selectedIndex}].maxIndex`, 0))) {
             // In range
             // TODO connect with axios to get image url 
-            this.setState({
-                frameState: `"${get(files, `[${selectedIndex}].filename`)}" at frame ${frame}`
-            })
+            try {
+                const data = (await axios.get(`https://cgci.cp.eng.chula.ac.th/thananop/ssdfaces/getFrameOfVideo?videoName=${files[selectedIndex].filename}&frameIndex=${frame}`)).data.url;
+                this.setState({
+                    frameState: `"${get(files, `[${selectedIndex}].filename`)}" at frame ${frame}`,
+                    frameIndex: frame,
+                    imageUri: `${config.backend}${config.imageSrc}${data}`
+                })
+            } catch(e) {
+                this.setState({
+                    frameState: "Invalid"
+                })
+            }
         } else {
             this.setState({
                 frameState: "Invalid"
@@ -372,7 +387,7 @@ class Timeline extends Component {
                             </span>
                             <Slider
                                 min={0}
-                                max={60}
+                                max={240}
                                 step={0.1}
                                 updateRange={this.onUpdateScale}
                                 range={scale}
@@ -385,15 +400,19 @@ class Timeline extends Component {
                         </div>
                     </div>
                     <div className="right-side">
-                        <img src="http://lorempixel.com/200/450" />
+                        {
+                            (frameState !== "Invalid") ? (
+                                <img
+                                    src={this.state.imageUri}
+                                />
+                            ) : (<div>No Match Found</div>)
+                        }
                     </div>
                 </div>
             </TimelineStyle>
         )
     }
 }
-
-export default Timeline;
 
 const MockIndex = (ranges) => {
     // [Start, End)
@@ -407,19 +426,7 @@ const MockIndex = (ranges) => {
 const testOffset = Date.now()
 
 Timeline.defaultProps = {
-    offset: testOffset,
     files: [{
-        filename: "Video 1.mp4",
-        offset: testOffset,
-        fps: 23.96,
-        maxIndex: 1600,
-        containIndex: MockIndex([
-            [0, 400],
-            [700, 950],
-            [960, 1200],
-            [1500, 1600]
-        ])
-    }, {
         filename: "Video 2.mp4",
         offset: testOffset + 1000*20,
         fps: 23.96,
@@ -429,6 +436,17 @@ Timeline.defaultProps = {
             [450, 500]
         ])
         }, {
+            filename: "Video 1.mp4",
+            offset: testOffset,
+            fps: 23.96,
+            maxIndex: 1600,
+            containIndex: MockIndex([
+                [0, 400],
+                [700, 950],
+                [960, 1200],
+                [1500, 1600]
+            ])
+        },{
             filename: "Video 3.mp4",
             offset: testOffset + 1000*60,
             fps: 23.96,
@@ -463,20 +481,86 @@ Timeline.defaultProps = {
             offset: testOffset + 1000 * 135,
             fps: 23.96,
             maxIndex: 500,
-            containIndex: MockIndex([
-                [20, 120],
-                [450, 500]
-            ])
+            containIndex: [
+                ...MockIndex([[20, 120]]),
+                300,
+                ...MockIndex([[450, 500]])
+            ]
         }]
 }
 
 Timeline.propTypes = {
-    offset: PropTypes.number.isRequired, // Unix-time offset
+    offset: PropTypes.number.isRequired,
     files: PropTypes.arrayOf(PropTypes.shape({
         filename: PropTypes.string.isRequired,
-        offset: PropTypes.number.isRequired,
+        offset: PropTypes.number.isRequired, // Unix-time offset
         fps: PropTypes.number.isRequired,
         maxIndex: PropTypes.number.isRequired,
         containIndex: PropTypes.arrayOf(PropTypes.number).isRequired
     }))
 }
+
+class TimelineManager extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isLoadMeta: true,
+            isLoadMetaError: false,
+            meta: null,
+            metaSort: [],
+            offset: Date.now()
+        }
+    }
+    componentDidMount = async () => {
+        try {
+            const data = defaultTo((await axios.get(config["get-video-meta-uri"])).data.results, []);
+            let result = data.map((it) => ({
+                filename: get(it, "video", "No Name"),
+                offset: get(it, "initTime", Date.now()/1000)*1000,
+                maxIndex: get(it, "videoLength", 0),
+                containIndex: [],
+                fps: 30
+            })).sort((e1, e2) => {
+                if (e1.offset !== e2.offset) {
+                    return e1.offset - e2.offset;
+                } else if (e1.filename !== e2.filename) {
+                    return e1.filename < e2.filename ? -1 : 1;
+                }
+                return 0;
+            });
+            let resultMap = {}
+            result.forEach((it) => {
+                resultMap[it.filename] = it;
+            })
+            this.setState({
+                isLoadMeta: false,
+                isLoadMetaError: false,
+                meta: resultMap,
+                metaSort: result,
+                offset: get(result, `[0].offset`, Date.now())
+            })
+        } catch(e) {
+            this.setState({
+                isLoadMeta: false,
+                isLoadMetaError: true
+            })
+        }
+    }
+    render() {
+        return (
+            (defaultTo(this.props.foundList, []).length === 0) ? null : (
+                <Timeline
+                    offset={this.state.offset}
+                    files={defaultTo(this.props.foundList, []).map((it) => {
+                        return ({
+                            ...this.state.meta[it.videoName],
+                            containIndex: Array.from(new Set(it.frameIndices)).sort((a, b) => a - b)
+                        });
+                    })}
+                />
+            )
+        )
+    }
+}
+
+export default TimelineManager;
