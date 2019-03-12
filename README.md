@@ -19,7 +19,7 @@
         <p>Download "best_model.pth" from <nav>https://www.dropbox.com/s/hub0mzdo1wwnz6h/best_train.pth?dl=0</nav>
       </li>
       <li>
-        <code>python web_bone-Copy1.py</code>
+        <code>python web_main.py</code>
       </li>
     </ol>
   </li>
