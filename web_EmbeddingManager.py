@@ -20,11 +20,11 @@ class EmbeddingManager:
             if file[:10] == "embedding-":
                 videoName = file
                 
-        self.embeddings = {}
-        self.margin = 1
-        for file in files:
-            if file.endswith(".avi") or file.endswith(".mp4"):
-                self.videos.append(file)
+#         self.embeddings = {}
+#         self.margin = 1
+#         for file in files:
+#             if file.endswith(".avi") or file.endswith(".mp4"):
+#                 self.videos.append(file)
         for video in self.videos:
             repPath = self.videoDir + "/" + "representative-" + video[:-4] + ".p"
             print("finding: ", repPath)

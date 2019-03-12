@@ -15,13 +15,15 @@ class Clustering:
         self.videoDir = videoDir
         self.plotResult = ''
         self.parameters = {}
+        self.embeddings = None
+        self.frameIndices = None
         return
         
     def loadEmbeddings(self, video):
         isSuccess = False
         try:
             self.video = video
-            self.embeddings = pickle.load( open( self.videoDir + "embeddings-" + video[:-4]+".p", "rb" ) )
+            [self.embeddings, self.frameIndices] = pickle.load( open( self.videoDir + "embeddings-" + video[:-4]+".p", "rb" ) )
             isSuccess = True
         except:
             isSuccess = False

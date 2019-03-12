@@ -36,6 +36,8 @@ class HumanDetection:
         images = []
         frameStepCounter = frameStep
         frameCounter = 0
+        frameIndices = []
+        frameIndex = 0
         cap = cv2.VideoCapture(self.videoDir + video)
         while(cap.isOpened() and frameCounter <= maxFrames):
             ret, frame = cap.read()
@@ -53,12 +55,14 @@ class HumanDetection:
                 if classes[i] == 1 and scores[i] > threshold:
                     box = boxes[i]
                     images.append(img[box[0]:box[2], box[1]:box[3]])
+                    frameIndices.append(frameIndex)
+            frameIndex += frameStep
         print("done loading: ", str(frameCounter), "frames")
         filePath = self.videoDir+video[:-4]+".p"
         cap.release()
         if os.path.exists(filePath):
             os.remove(filePath)
-        pickle.dump(images, open( filePath, "wb" ))
+        pickle.dump([images,frameIndices], open( filePath, "wb" ))
         return
     def detectAllInImage(self, image):
         images = []

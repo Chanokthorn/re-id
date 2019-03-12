@@ -29,11 +29,12 @@ class ImageListEmbedder:
     def __init__(self, videoDir="HumanDetection/videos/"):
         self.videoDir = videoDir
         self.loadModel()
+        self.images = None
+        self.frameIndices = None
         return
     def embed(self, video="TownCentreXVID.avi"):
-        self.images = pickle.load( open( self.videoDir+video[:-4]+".p", "rb" ) )
+        [self.images, self.frameIndices] = pickle.load( open( self.videoDir+video[:-4]+".p", "rb" ) )
         embeddings = []
-        
         for i in tqdm(range(len(self.images))):
             image = self.images[i]
             embedding = self.model.forward(image)
@@ -43,7 +44,7 @@ class ImageListEmbedder:
         filePath = self.videoDir + "embeddings-" + video[:-4]+".p"
         if os.path.exists(filePath):
             os.remove(filePath)
-        pickle.dump( embeddings, open(filePath, "wb"))
+        pickle.dump( [embeddings, self.frameIndices], open(filePath, "wb"))
         return "done"
     def embedImage(self, img):
         embedding = self.model.forward(img)

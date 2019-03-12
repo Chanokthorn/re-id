@@ -20,8 +20,13 @@ imageListEmbedder = web_ImageListEmbedder.ImageListEmbedder()
 # clustering = web_Clustering.Clustering()
 displayImage = web_DisplayImage.DisplayImage()
 videoManager = web_VideoManager.VideoManager()
+
+videoManager.setInitTimeStub()
+
 videoHandler = web_VideoHandler.VideoHandler()
 clusteringManager = web_ClusteringManager.ClusteringManager()
+
+# clusteringManager.setInitTimeStub()
 
 img_static = "img_Static"
 img_detectedPerson = "img_DetectedPerson"
@@ -42,6 +47,7 @@ def serve_image(path):
     print(UPLOAD_FOLDER,path)
     if not os.path.isfile(os.path.join(UPLOAD_FOLDER,path)):
         return "<center><b>403 Forbidden</b></center>"
+    print("served")
     return send_from_directory(UPLOAD_FOLDER, path)
 
 @app.route(BASE_URI + '/detect',methods=['GET','POST'])
@@ -203,7 +209,9 @@ def getPrevFrame():
 @app.route(BASE_URI + '/getFrameIndex', methods=['GET','POST'])
 def getFrameIndex():
     index = request.args.get('index')
+    print("begin")
     image = videoHandler.getFrameIndex(index)
+    print("end")
     return jsonify(url=displayImage.createImageLocal(image))
 
 @app.route(BASE_URI + "/detectFrame", methods=['GET','POST'])
@@ -235,14 +243,46 @@ def findPerson():
     else:
         result = clusteringManager.findFull(embedding)
     return jsonify(result=result)
+
+@app.route(BASE_URI + "/findPersonWithFrame", methods=['GET','POST'])
+def findPersonWithFrame():
+    url = request.args.get('url')
+    mode = request.args.get('mode')
+    image = humanDetection.getImage(url)
+    embedding = imageListEmbedder.embedImage(image)
+    if mode == "useCluster":
+        result = clusteringManager.find(embedding)
+    else:
+        result = clusteringManager.findFullWithFrame(embedding)
+    return jsonify(result=result)
     
 @app.route(BASE_URI + "/observe", methods=['GET','POST'])
 def observe ():
     video = request.args.get('video')
     result = clusteringManager.observe(video)
     return jsonify(result=result)
+
+@app.route(BASE_URI + "/getFrameOfVideo", methods=['GET','POST'])
+def getFrameOfVideo():
+    videoName = request.args.get('videoName')
+    frameIndex = request.args.get('frameIndex')
+    image = videoHandler.getFrameOfVideo(videoName,frameIndex)
+    return jsonify(url=displayImage.createImageLocal(image))
+
+from random import randint
+@app.route(BASE_URI + '/stressTest', methods=['GET','POST'])
+def stressTest():
+    index = request.args.get('max')
+    for i in range(100):
+#         index = randint(0, int(index)-3)
+        index = randint(0,300)
+        image = videoHandler.getFrameIndex(index)
+        print('success')
+    return 
     
 
 if __name__ == "__main__":
     app.secret_key = os.urandom(24)
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", debug=True, threaded=False)
+# if __name__ == '__main__':
+#     app.run()

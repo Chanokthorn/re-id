@@ -24,7 +24,7 @@ class DisplayImage:
         return
     
     def createImage(self, input, folder, indexing=False, index=None):
-        fileDir = folder + "/" + str(self.storeIndex[folder]) + ".png"
+        fileDir = folder + "/" + str(self.storeIndex[folder]) + ".jpg"
         cv2.imwrite(fileDir, input)
         self.storeIndex[folder] += 1
         url, counter = self.pyrebase.storeFile(fileDir, folder)
@@ -36,7 +36,7 @@ class DisplayImage:
         if self.storeIndex[folder] == 0: 
             return "done clearing " + folder
         for i in range(self.storeIndex[folder]):
-            os.remove(folder + "/" + str(i) + ".png")
+            os.remove(folder + "/" + str(i) + ".jpg")
         self.storeIndex[folder] = 0
         self.pyrebase.clear(folder)
         return "done clearing " + folder
@@ -52,7 +52,7 @@ class DisplayImage:
     
     def createFileLocal(self, input):
         fileId = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(20))
-        fileName = fileId + ".png"
+        fileName = fileId + ".jpg"
         fileDir = self.localFolder + "/" + fileName
         if os.path.exists(fileDir):
             os.remove(fileDir)
@@ -73,7 +73,7 @@ class DisplayImage:
         if len(self.localFileTracker) > self.localFileTrackerSize:
             os.remove(self.localFileTracker[0])
             del self.localFileTracker[0]
-        fileName = str( self.storeIndex["img_temp"]) + ".png"
+        fileName = str( self.storeIndex["img_temp"]) + ".jpg"
         fileDir = self.localFolder + "/" + fileName
         cv2.imwrite(fileDir, input)
         self.storeIndex["img_temp"] += 1
@@ -85,7 +85,7 @@ class DisplayImage:
         images = []
         self.storeIndex[folder] = 0
         for file in files:
-            if file.endswith(".png") or file.endswith(".jpeg"):
+            if file.endswith(".jpg") or file.endswith(".png"):
                 images.append(file)
         if len(images) == 0: 
             return "done clearing " + folder

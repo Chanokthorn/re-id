@@ -60,8 +60,11 @@ class VideoHandler:
         self.index = 0
         self.frames = []
         self.frameStep = 10
+        self.cap = None
         return
     def loadVideo(self, video):
+        if self.cap is not None:
+            self.cap.release()
         self.index = 0
         self.video = video
         del self.frames
@@ -73,10 +76,14 @@ class VideoHandler:
         self.frameStep = frameStep
         return "success"
     def getFrameIndex(self, index):
+        print("start of function")
         index = int(index)
         if index in range(self.length):
+            print("setting index")
             self.cap.set(1,index)
+            print("about to read")
             _, frame = self.cap.read()
+            print("loaded")
             self.currentFrame = frame
             frame = cv2.resize(frame, (480, 320))
             return (frame)
@@ -99,3 +106,7 @@ class VideoHandler:
         self.frames = []
         self.index = 0
         return "success"
+    def getFrameOfVideo(self, videoName, frameIndex):
+        self.loadVideo(videoName)
+        result = self.getFrameIndex(frameIndex)
+        return result
