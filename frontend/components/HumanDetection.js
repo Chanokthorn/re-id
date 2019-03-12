@@ -7,9 +7,12 @@ import {
   Image,
   Input,
   Button,
-  Container
+  Container,
+  Checkbox,
+  Segment
 } from "semantic-ui-react";
 import VideoController from "../components/VideoController";
+import Timeline from "../components/Timeline2";
 
 const HumanDetectionContainer = styled.div`
     width: 100%;
@@ -82,9 +85,13 @@ class HumanDetection extends React.Component {
       isFinding: false,
       findResult: [],
       personList: [],
+      findResultMatch: [],
       margin: 1,
       personSelected: null,
-      videoSelected: null
+      videoSelected: null,
+      isFindingInVideo: false,
+      videoPersonList: [],
+      useCluster: false
     };
   }
 
@@ -108,12 +115,12 @@ class HumanDetection extends React.Component {
   };
 
   searchPerson = url => {
-    const { backend } = this.state;
-    this.setState({ isFinding: true, personSelected: url });
+    const { backend, useCluster } = this.state;
+    this.setState({ isFinding: true, personSelected: url }, this.searchPersonWithFrame);
     console.log("searching: " + url);
     axios
       .get(backend + "findPerson", {
-        params: { url: url }
+        params: { url: url, mode: useCluster ? "useCluster" : "full" }
       })
       .then(res => {
         this.setState({ findResult: res.data.result, isFinding: false });
@@ -123,8 +130,53 @@ class HumanDetection extends React.Component {
   };
 
   setMargin = () => {
-    const { margin } = this.state;
-    console.log("set margin: " + margin);
+    const { backend, margin } = this.state;
+    axios
+      .get(backend + "setMargin", {
+        params: { margin: margin }
+      })
+      .then(res => {
+        console.log("set margin " + res.data);
+      });
+  };
+
+  observe = videoName => {
+    const { backend } = this.state;
+    this.setState({ isFindingInVideo: true });
+    const url = backend + "observe";
+    console.log("OBSERVE: ", url);
+    axios
+      .get(url, {
+        params: { video: videoName }
+      })
+      .then(res => {
+        this.setState({
+          videoPersonList: res.data.result,
+          isFindingInVideo: false
+        });
+      });
+  };
+
+  onModeToggled = checked => {
+    if (checked === true) {
+      this.setState({ videoPersonList: [] });
+    }
+    this.setState({ useCluster: checked });
+  };
+  searchPersonWithFrame = () => {
+    const { backend, personSelected, useCluster } = this.state;
+    axios
+      .get(backend + "findPersonWithFrame", {
+        params: {
+          url: personSelected,
+          mode: useCluster ? "useCluster" : "full"
+        }
+      })
+      .then(res => {
+        this.setState({ findResultMatch: res.data.result, isFinding: false });
+        console.log("Found Match list");
+        console.log(res.data.result);
+      });
   };
 
   render() {
@@ -135,10 +187,14 @@ class HumanDetection extends React.Component {
       personList,
       margin,
       findResult,
-      personSelected
+      findResultMatch,
+      personSelected,
+      isFindingInVideo,
+      videoPersonList,
+      useCluster
     } = this.state;
-    return (
-      <HumanDetectionContainer>
+    return [
+      <HumanDetectionContainer key="main">
         <VideoController backend={backend} detectFrame={this.detectFrame} />
         <Container>
           <HumanDetectionPersons>
@@ -186,22 +242,64 @@ class HumanDetection extends React.Component {
             </Grid>
           </HumanDetectionPersons>
         </Container>
-        <HumanDetectionResult>
-          <h3>Detection Results</h3>
-          <GrandInput
-            label="Margin"
-            onChange={e => this.setState({ margin: e.target.value })}
-            defaultValue={margin}
-          />
-          <GrandButton onClick={() => this.setMargin()}>Set Margin</GrandButton>
-          {findResult.length === 0
+        <Grid centered>
+          <Grid.Row>
+            <HumanDetectionResult>
+              <h3>Detection Results</h3>
+              <Segment>
+                <Checkbox
+                  checked={useCluster}
+                  toggle
+                  label="Use Cluster"
+                  onChange={(e, { checked }) => this.onModeToggled(checked)}
+                />
+              </Segment>
+              <GrandInput
+                label="Margin"
+                onChange={e => this.setState({ margin: e.target.value })}
+                defaultValue={margin}
+              />
+              <GrandButton onClick={() => this.setMargin()}>
+                Set Margin
+              </GrandButton>
+              {findResult.length === 0
+                ? null
+                : findResult.map(video => (
+                    <GrandButton
+                      color="blue"
+                      onClick={() => this.observe(video.videoName)}
+                    >
+                      {video.videoName}
+                    </GrandButton>
+                  ))}
+            </HumanDetectionResult>
+          </Grid.Row>
+          {useCluster
             ? null
-            : findResult.map(videoName => (
-                <GrandButton color="blue">{videoName}</GrandButton>
-              ))}
-        </HumanDetectionResult>
-      </HumanDetectionContainer>
-    );
+            : videoPersonList.length > 0
+            ? videoPersonList.map(person => (
+                <Grid.Column width={4} key={person}>
+                  <div
+                    onClick={() => this.searchPerson(person)}
+                    key={"div2-" + person}
+                  >
+                    <GrandImage
+                      size="small"
+                      src={backend + "imageStorage/" + person}
+                      key={"img2-" + person}
+                      selected={person === personSelected}
+                    />
+                  </div>
+                </Grid.Column>
+              ))
+            : null}
+        </Grid>
+      </HumanDetectionContainer>,
+      <Timeline
+          key="timeline"
+          foundList={findResultMatch}
+      />
+    ];
   }
 }
 

@@ -1,0 +1,5 @@
+{
+    "get-video-meta-uri": "https://cgci.cp.eng.chula.ac.th/thananop/ssdfaces/checkVideosStatus",
+    "backend": "https://cgci.cp.eng.chula.ac.th/thananop/ssdfaces/",
+    "imageSrc": "imageStorage/"
+}
